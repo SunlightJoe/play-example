@@ -1,9 +1,11 @@
 version: 0.2
 phases:
-  pre_build:
+  install:
     commands:
       - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=overlay&
       - timeout -t 15 sh -c "until docker info; do echo .; sleep 1; done"
+  pre_build:
+    commands:
       - $(aws ecr get-login --no-include-email)
       - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
       - ACCOUNT_ID="$(aws sts get-caller-identity | sed -n '/Account/s/.*\"\([0-9]\+\)\",/\1/p')"
