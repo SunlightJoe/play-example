@@ -8,7 +8,7 @@ phases:
     commands:
       - $(aws ecr get-login --no-include-email)
       - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
-      - ACCOUNT_ID="$(aws sts get-caller-identity | sed -n '/Account/s/.*\"\([0-9]\+\)\",/\1/p')"
+      - ACCOUNT_ID="$(aws sts get-caller-identity | sed -n '/Account/s/.*\"\([0-9]\+\)\".*/\1/p')"
       - IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/play-example:${TAG}"
   build:
     commands:
