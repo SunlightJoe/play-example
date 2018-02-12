@@ -1,4 +1,4 @@
-name := """play-example"""
+name := "play-example"
 organization := "com.example"
 
 version := "1.0-SNAPSHOT"
@@ -16,4 +16,5 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "com.example.binders._"
 
+dockerExposedPorts := Seq(9000)
 enablePlugins(DockerPlugin)
