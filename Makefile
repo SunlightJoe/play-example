@@ -17,8 +17,8 @@ build:
 		codebuild-sbt-docker \
 		sbt docker:publishLocal
 
-run: docker
-	docker run play-example:1.0-SNAPSHOT
+run:
+	docker run -p 9000:9000 play-example:1.0-SNAPSHOT
 
 release:
 	eval `aws ecr get-login --no-include-email --region us-east-1`
