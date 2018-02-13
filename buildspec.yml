@@ -22,7 +22,9 @@ artifacts:
   files: images.json
 cache:
   paths:
-    - '/root/.m2/**/*'
-    - '/root/.sbt/**/*'
-    - '/root/.ivy2/**/*'
-    - '/root/.pip/**/*'
+    - /root/.cache/**/*
+    - /root/.coursier/**/*
+    - /root/.m2/**/*
+    - /root/.sbt/**/*
+    - /root/.ivy2/**/*
+    - /root/.pip/**/*
