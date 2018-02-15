@@ -8,8 +8,7 @@ phases:
     commands:
       - $(aws ecr get-login --no-include-email)
       - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
-      - ACCOUNT_ID="$(aws sts get-caller-identity | sed -n '/Account/s/.*\"\([0-9]\+\)\".*/\1/p')"
-      - IMAGE_URI="${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/play-example:${TAG}"
+      - IMAGE_URI="${REPOSITORY_URI}:${TAG}"
   build:
     commands:
       - sbt docker:publishLocal
@@ -17,7 +16,7 @@ phases:
     commands:
       - docker image tag play-example:1.0-SNAPSHOT "$IMAGE_URI"
       - docker image push "$IMAGE_URI"
-      - printf '[{"name":"play-example","imageUri":"%s"}]' "$IMAGE_URI" > images.json
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$IMAGE_NAME" "$IMAGE_URI" > images.json
 artifacts:
   files: images.json
 cache:
