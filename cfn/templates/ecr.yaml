@@ -1,0 +1,13 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  Repository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+
+Outputs:
+  RepositoryUri:
+    Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}
+  Repository:
+    Value: !Ref Repository

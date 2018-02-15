@@ -1,0 +1,128 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+
+Description: >
+  This template builds the continuous delivery pipeline for play-example
+
+Parameters:
+  GitHubUser:
+    Type: String
+    Description: Your username on GitHub.
+    Default: SunlightJoe
+
+  GitHubRepo:
+    Type: String
+    Default: play-example
+
+  GitHubBranch:
+    Type: String
+    Default: master
+
+  GitHubToken:
+    Type: String
+    NoEcho: true
+    Description: >
+      Token for the user specified above. (https://github.com/settings/tokens)
+
+  TemplateBucket:
+    Type: String
+    Default: play-example-cfn
+    Description: >
+      The S3 bucket from which to fetch the templates used by this stack.
+
+  ImageName:
+    Type: String
+    Default: play-via-cfn
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterLabels:
+      GitHubUser:
+        default: "User"
+      GitHubRepo:
+        default: "Repo"
+      GitHubBranch:
+        default: "Branch"
+      GitHubToken:
+        default: "Personal Access Token"
+    ParameterGroups:
+      - Label:
+          default: GitHub Configuration
+        Parameters:
+          - GitHubRepo
+          - GitHubBranch
+          - GitHubUser
+          - GitHubToken
+      - Label:
+          default: Stack Configuration
+        Parameters:
+          - TemplateBucket
+
+
+Resources:
+
+  LoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${TemplateBucket}/templates/load-balancer.yaml"
+      Parameters:
+        Subnets: !GetAtt VPC.Outputs.Subnets
+        VpcId: !GetAtt VPC.Outputs.VpcId
+
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${TemplateBucket}/templates/vpc.yaml"
+      Parameters:
+        Name: !Ref AWS::StackName
+        VpcCIDR:     10.10.0.0/16
+        Subnet1CIDR: 10.10.10.0/24
+        Subnet2CIDR: 10.10.20.0/24
+
+  ECR:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${TemplateBucket}/templates/ecr.yaml"
+
+  ECSCluster:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${TemplateBucket}/templates/ecs-cluster.yaml"
+
+  DeploymentPipeline:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${TemplateBucket}/templates/deployment-pipeline.yaml"
+      Parameters:
+        ImageName:  !Ref ImageName
+        ECRRepo:    !GetAtt ECR.Outputs.Repository
+        ECRRepoUri: !GetAtt ECR.Outputs.RepositoryUri
+        ECSCluster: !GetAtt ECSCluster.Outputs.ClusterName
+        ECSService: !GetAtt ECSService.Outputs.Service
+        GitHubUser: !Ref GitHubUser
+        GitHubToken: !Ref GitHubToken
+        GitHubRepo: !Ref GitHubRepo
+        GitHubBranch: !Ref GitHubBranch
+
+  ECSService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${TemplateBucket}/templates/ecs-service.yaml"
+      Parameters:
+        ImageName:  !Ref ImageName
+        ECRRepoUri: !GetAtt ECR.Outputs.RepositoryUri
+        ECSCluster: !GetAtt ECSCluster.Outputs.ClusterName
+        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+        SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
+        Subnets: !GetAtt VPC.Outputs.Subnets
+
+
+Outputs:
+  ServiceUrl:
+    Description: The sample service that is being continuously deployed.
+    Value: !GetAtt LoadBalancer.Outputs.ServiceUrl
+
+  PipelineUrl:
+    Description: The continuous deployment pipeline in the AWS Management Console.
+    Value: !GetAtt DeploymentPipeline.Outputs.PipelineUrl

@@ -1,0 +1,26 @@
+* TaskDefinition needs a working image
+  Even though the CodePipeline is responsible for creating a Docker image, in
+  order to create the ECS Service used by CodePipeline there needs to be a
+  TaskDefinition. That TaskDefinition needs a working Docker image, which
+  will eventually be the image created by the CodePipeline. But that image
+  hasn't been created yet, thus Catch-22.
+
+  To resolve this, use a dummy image like "amazon/amazon-ecs-sample"
+* Containers need to listen on ContainerPort
+  A Container will fail its health check if the ContainerPort specified in the
+  TaskDefintiion isn't listening. Thus we need to make sure that whatever dummy
+  image we use listens on the ContainerPort set in the TaskDefinition.
+
+  Otherwise the ECS Service will fail to be created because the container won't
+  stay up.
+* Updating a TaskDefinition's Image
+  Changing the Image defined in the TaskDefinition causes its revision to
+  increment and the ECS Service relaunches with the new image. This will cause
+  the service to become unavailable while it is updated.
+
+  Forcing the CodePipeline to run fixes the problem.
+* Updating CodeBuild
+  Changes to a CodeBuild project via CloudFormation do not cause the
+  CodePipeline to get automatically rerun.
+
+  You have to force the CodePipeline to run.
