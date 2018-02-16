@@ -1,4 +1,4 @@
-.PHONY: build run release
+.PHONY: build run push
 
 AWS_ACCOUNT_ID ?= $(shell aws sts get-caller-identity | sed -n '/Account/s/.*"\([0-9]\+\)".*/\1/p')
 IMAGE := play-example:1.0-SNAPSHOT
@@ -20,7 +20,7 @@ build:
 run:
 	docker run -p 9000:9000 play-example:1.0-SNAPSHOT
 
-release:
+push:
 	eval `aws ecr get-login --no-include-email --region us-east-1`
 	docker inspect ${REPO} > /dev/null
 	docker tag ${IMAGE} ${REPO}
