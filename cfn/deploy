@@ -9,6 +9,6 @@ aws s3api put-bucket-policy --bucket "$1" \
 
 aws s3api put-bucket-versioning --bucket "$1"  --versioning-configuration Status=Enabled
 
-aws s3 cp ecs-refarch-continuous-deployment.yaml "s3://${1}"
+aws s3 cp play-example.yaml "s3://${1}"
 
 aws s3 cp --recursive templates/ "s3://${1}/templates"
