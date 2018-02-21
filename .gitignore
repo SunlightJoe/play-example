@@ -7,4 +7,5 @@ target
 /.settings
 /RUNNING_PID
 /.cache
-cfn/params.json
+cfn/*.json
+cfn/*.zip

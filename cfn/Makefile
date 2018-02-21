@@ -3,6 +3,8 @@
 YAMLS := $(wildcard *.yaml **/*.yaml)
 LINTS := $(patsubst %.yaml, %.lint, $(YAMLS))
 BUCKET ?= play-example-cfn
+PARAMS := play-example-cfn.json
+PARAMSZIP := $(PARAMS).zip
 
 all: $(LINTS)
 
@@ -10,8 +12,13 @@ $(LINTS): %.lint: %.yaml
 	aws cloudformation validate-template --template-body file://./$<
 
 
-push: $(LINTS)
-	./deploy $(BUCKET)
+push: $(LINTS) $(PARAMSZIP)
+#	./deploy $(BUCKET)
+	aws s3 cp $(PARAMSZIP) s3://$(BUCKET)
+
+$(PARAMSZIP): $(PARAMS)
+	jq . $<
+	zip $@ $<
 
 create: push
 	aws cloudformation create-stack \
